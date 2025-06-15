@@ -1,0 +1,139 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+model Billboard {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  createdAt DateTime @db.Date
+  imageUrl  String
+  label     String
+  storeId   String   @db.ObjectId
+  updatedAt DateTime @db.Date
+
+  @@index([storeId])
+}
+
+model Category {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  billboardId String   @db.ObjectId
+  createdAt   DateTime @db.Date
+  name        String
+  storeId     String   @db.ObjectId
+  updatedAt   DateTime @db.Date
+
+  @@index([storeId])
+  @@index([billboardId])
+}
+
+model Color {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  createdAt DateTime @db.Date
+  name      String
+  storeId   String   @db.ObjectId
+  updatedAt DateTime @db.Date
+  value     String
+
+  @@index([storeId])
+}
+
+model Image {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  createdAt   DateTime @db.Date
+  /// Field referred in an index, but found no data to define the type.
+  productId   Json?
+  updatedAt   DateTime @db.Date
+  url         String
+  variationId String   @db.ObjectId
+
+  @@index([productId])
+  @@index([variationId])
+}
+
+model Order {
+  id         String      @id @default(auto()) @map("_id") @db.ObjectId
+  address    String
+  createdAt  DateTime    @db.Date
+  isPaid     Boolean
+  phone      String
+  storeId    String      @db.ObjectId
+  updatedAt  DateTime    @db.Date
+  orderItems OrderItem[] @relation("OrderToOrderItems")
+
+  @@index([storeId])
+}
+
+model OrderItem {
+  id          String    @id @default(auto()) @map("_id") @db.ObjectId
+  createdAt   DateTime? @db.Date
+  orderId     String    @db.ObjectId
+  productId   String    @db.ObjectId
+  updatedAt   DateTime? @db.Date
+  variationId String?   @db.ObjectId
+
+  Order     Order      @relation(fields: [orderId], references: [id], name: "OrderToOrderItems")
+  product   Product    @relation(fields: [productId], references: [id])
+  variation Variation? @relation(fields: [variationId], references: [id])
+
+  @@index([orderId])
+  @@index([productId])
+  @@index([variationId])
+}
+
+model Product {
+  id          String      @id @default(auto()) @map("_id") @db.ObjectId
+  categoryId  String      @db.ObjectId
+  colorId     String?     @db.ObjectId
+  createdAt   DateTime    @db.Date
+  description String
+  isArchived  Boolean
+  isFeatured  Boolean
+  name        String
+  price       Float?
+  sizeId      String?     @db.ObjectId
+  storeId     String      @db.ObjectId
+  updatedAt   DateTime    @db.Date
+  OrderItem   OrderItem[]
+
+  @@index([storeId])
+  @@index([categoryId])
+}
+
+model Size {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  createdAt DateTime @db.Date
+  name      String
+  storeId   String   @db.ObjectId
+  updatedAt DateTime @db.Date
+  value     String
+
+  @@index([storeId])
+}
+
+model Store {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  createdAt DateTime @db.Date
+  name      String
+  updatedAt DateTime @db.Date
+  userId    String
+}
+
+model Variation {
+  id        String      @id @default(auto()) @map("_id") @db.ObjectId
+  colorId   String      @db.ObjectId
+  createdAt DateTime    @db.Date
+  price     Float
+  productId String      @db.ObjectId
+  sizeId    String      @db.ObjectId
+  stock     BigInt
+  updatedAt DateTime    @db.Date
+  OrderItem OrderItem[]
+
+  @@index([productId])
+  @@index([sizeId])
+  @@index([colorId])
+}
