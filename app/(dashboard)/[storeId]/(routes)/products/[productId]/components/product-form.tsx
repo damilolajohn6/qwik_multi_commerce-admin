@@ -45,11 +45,11 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Textarea } from "@/components/ui/textarea";
 
 const variationSchema = z.object({
-  sizeId: z.string().optional(),
-  colorId: z.string().optional(),
+  sizeId: z.string().min(1, "Size is required"),
+  colorId: z.string().min(1, "Color is required"),
   price: z.coerce.number().min(0, "Price must be non-negative"),
   stock: z.coerce.number().int().min(0, "Stock must be non-negative"),
-  images: z.object({ url: z.string() }).array().min(0),
+  images: z.object({ url: z.string() }).array(),
 });
 
 const formSchema = z.object({
@@ -71,8 +71,8 @@ interface ProductFormProps {
         images: Image[];
         variations: (Variation & {
           images: Image[];
-          size?: Size;
-          color?: Color;
+          size: Size | null;
+          color: Color | null;
         })[];
       })
     | null;
@@ -107,7 +107,10 @@ export const ProductForm: React.FC<ProductFormProps> = ({
           sizeId: variation.sizeId || undefined,
           colorId: variation.colorId || undefined,
           price: parseFloat(String(variation.price)),
-          stock: typeof variation.stock === "bigint" ? Number(variation.stock) : variation.stock,
+          stock:
+            typeof variation.stock === "bigint"
+              ? Number(variation.stock)
+              : variation.stock,
           images: (variation.images || []).map((img) => ({ url: img.url })),
         })),
         isFeatured: initialData.isFeatured,
@@ -295,7 +298,6 @@ export const ProductForm: React.FC<ProductFormProps> = ({
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            <SelectItem value="">None</SelectItem>
                             {sizes.map((size) => (
                               <SelectItem key={size.id} value={size.id}>
                                 {size.name}
@@ -324,7 +326,6 @@ export const ProductForm: React.FC<ProductFormProps> = ({
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            <SelectItem value="">None</SelectItem>
                             {colors.map((color) => (
                               <SelectItem key={color.id} value={color.id}>
                                 {color.name}

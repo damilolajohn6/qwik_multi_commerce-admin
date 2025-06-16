@@ -1,23 +1,32 @@
 import prismadb from "@/lib/prismadb";
 import { ProductForm } from "./components/product-form";
 
-const ProductPage = async ({
-  params,
-}: {
-  params: { productId: string; storeId: string };
-}) => {
+// Define the type for params explicitly
+type ProductPageProps = {
+  params: Promise<{ productId: string; storeId: string }>;
+};
+
+const ProductPage = async ({ params }: ProductPageProps) => {
+  // Await the params to get productId and storeId
+  const { productId, storeId } = await params;
+
   const rawProduct =
-    params.productId === "new"
+    productId === "new"
       ? null
       : await prismadb.product.findUnique({
-          where: { id: params.productId },
+          where: { id: productId },
           include: {
             images: true,
-            variations: { include: { images: true, size: true, color: true } },
+            variations: {
+              include: {
+                images: true,
+                size: true,
+                color: true,
+              },
+            },
           },
         });
 
-  // Map null size/color to undefined for type compatibility
   const product = rawProduct
     ? {
         ...rawProduct,
@@ -30,15 +39,15 @@ const ProductPage = async ({
     : null;
 
   const categories = await prismadb.category.findMany({
-    where: { storeId: params.storeId },
+    where: { storeId: storeId },
   });
 
   const sizes = await prismadb.size.findMany({
-    where: { storeId: params.storeId },
+    where: { storeId: storeId },
   });
 
   const colors = await prismadb.color.findMany({
-    where: { storeId: params.storeId },
+    where: { storeId: storeId },
   });
 
   return (

@@ -4,16 +4,18 @@ import prismadb from "@/lib/prismadb";
 import { BillboardColumn } from "./components/columns";
 import { BillboardClient } from "./components/client";
 
-interface BillboardsPageProps {
-  params: {
-    storeId: string;
-  };
-}
+// Define the type for params explicitly
+type BillboardsPageProps = {
+  params: Promise<{ storeId: string }>;
+};
 
 const BillboardsPage = async ({ params }: BillboardsPageProps) => {
+  // Await the params to get the storeId
+  const { storeId } = await params;
+
   const billboards = await prismadb.billboard.findMany({
     where: {
-      storeId: params.storeId,
+      storeId: storeId,
     },
     orderBy: {
       createdAt: "desc",

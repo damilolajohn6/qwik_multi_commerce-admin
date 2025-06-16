@@ -8,12 +8,13 @@ datasource db {
 }
 
 model Billboard {
-  id        String   @id @default(auto()) @map("_id") @db.ObjectId
-  createdAt DateTime @db.Date
+  id        String     @id @default(auto()) @map("_id") @db.ObjectId
+  createdAt DateTime   @db.Date
   imageUrl  String
   label     String
-  storeId   String   @db.ObjectId
-  updatedAt DateTime @db.Date
+  storeId   String     @db.ObjectId
+  updatedAt DateTime   @db.Date
+  Category  Category[]
 
   @@index([storeId])
 }
@@ -26,29 +27,35 @@ model Category {
   storeId     String   @db.ObjectId
   updatedAt   DateTime @db.Date
 
+  billboard Billboard @relation(fields: [billboardId], references: [id])
+  Product   Product[]
+
   @@index([storeId])
   @@index([billboardId])
 }
 
 model Color {
-  id        String   @id @default(auto()) @map("_id") @db.ObjectId
-  createdAt DateTime @db.Date
+  id        String      @id @default(auto()) @map("_id") @db.ObjectId
+  createdAt DateTime    @db.Date
   name      String
-  storeId   String   @db.ObjectId
-  updatedAt DateTime @db.Date
+  storeId   String      @db.ObjectId
+  updatedAt DateTime    @db.Date
   value     String
+  Product   Product[]
+  Variation Variation[]
 
   @@index([storeId])
 }
 
 model Image {
-  id          String   @id @default(auto()) @map("_id") @db.ObjectId
-  createdAt   DateTime @db.Date
-  /// Field referred in an index, but found no data to define the type.
-  productId   Json?
-  updatedAt   DateTime @db.Date
+  id          String     @id @default(auto()) @map("_id") @db.ObjectId
+  createdAt   DateTime   @db.Date
+  productId   String?    @db.ObjectId
+  updatedAt   DateTime   @db.Date
   url         String
-  variationId String   @db.ObjectId
+  variationId String?    @db.ObjectId
+  product     Product?   @relation(fields: [productId], references: [id])
+  variation   Variation? @relation(fields: [variationId], references: [id])
 
   @@index([productId])
   @@index([variationId])
@@ -97,6 +104,12 @@ model Product {
   sizeId      String?     @db.ObjectId
   storeId     String      @db.ObjectId
   updatedAt   DateTime    @db.Date
+  images      Image[]
+  variations  Variation[]
+  category    Category    @relation(fields: [categoryId], references: [id])
+  color       Color?      @relation(fields: [colorId], references: [id])
+  size        Size?       @relation(fields: [sizeId], references: [id])
+  store       Store       @relation(fields: [storeId], references: [id])
   OrderItem   OrderItem[]
 
   @@index([storeId])
@@ -104,22 +117,25 @@ model Product {
 }
 
 model Size {
-  id        String   @id @default(auto()) @map("_id") @db.ObjectId
-  createdAt DateTime @db.Date
+  id        String      @id @default(auto()) @map("_id") @db.ObjectId
+  createdAt DateTime    @db.Date
   name      String
-  storeId   String   @db.ObjectId
-  updatedAt DateTime @db.Date
+  storeId   String      @db.ObjectId
+  updatedAt DateTime    @db.Date
   value     String
+  Product   Product[]
+  Variation Variation[]
 
   @@index([storeId])
 }
 
 model Store {
-  id        String   @id @default(auto()) @map("_id") @db.ObjectId
-  createdAt DateTime @db.Date
+  id        String    @id @default(auto()) @map("_id") @db.ObjectId
+  createdAt DateTime  @db.Date
   name      String
-  updatedAt DateTime @db.Date
+  updatedAt DateTime  @db.Date
   userId    String
+  Product   Product[]
 }
 
 model Variation {
@@ -129,9 +145,13 @@ model Variation {
   price     Float
   productId String      @db.ObjectId
   sizeId    String      @db.ObjectId
-  stock     BigInt
+  stock     Int
   updatedAt DateTime    @db.Date
+  images    Image[]
   OrderItem OrderItem[]
+  color     Color       @relation(fields: [colorId], references: [id])
+  product   Product     @relation(fields: [productId], references: [id])
+  size      Size        @relation(fields: [sizeId], references: [id])
 
   @@index([productId])
   @@index([sizeId])

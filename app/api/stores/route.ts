@@ -24,6 +24,8 @@ export async function POST(
       data: {
         name,
         userId,
+        createdAt: new Date(),
+        updatedAt: new Date(),
       }
     });
   
