@@ -69,8 +69,22 @@ export async function DELETE(req: Request, { params }: ModifyParams) {
       return new NextResponse("Unauthorized", { status: 405 });
     }
 
-    const product = await prismadb.product.delete({
-      where: { id: productId },
+    // Start a transaction to delete variations and product
+    const product = await prismadb.$transaction(async (tx) => {
+      // Delete all variations associated with the product
+      await tx.variation.deleteMany({
+        where: { productId },
+      });
+
+      // Delete all images associated with the product
+      await tx.image.deleteMany({
+        where: { productId },
+      });
+
+      // Delete the product
+      return tx.product.delete({
+        where: { id: productId },
+      });
     });
 
     return NextResponse.json(product);
